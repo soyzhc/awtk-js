@@ -74,7 +74,8 @@ void* jerry_get_pointer(jerry_value_t v, const char* type) {
   return p;
 }
 
-jerry_value_t jerry_create_pointer(const void* ptr, const char* type) {
+jerry_value_t jerry_create_pointer(const void* ptr, const char* type,
+                                   const jerry_object_native_info_t* native_info_p) {
   if (ptr == NULL) {
     return jerry_create_null();
   } else {
@@ -83,7 +84,7 @@ jerry_value_t jerry_create_pointer(const void* ptr, const char* type) {
     jerry_value_t cls_type_value = jerry_create_string_from_utf8((jerry_char_t*)type);
 
     jerry_set_property(obj, cls_type, cls_type_value);
-    jerry_set_object_native_pointer(obj, (void*)ptr, NULL);
+    jerry_set_object_native_pointer(obj, (void*)ptr, native_info_p);
 
     return obj;
   }
@@ -95,7 +96,7 @@ static ret_t call_on_event(void* ctx, event_t* e) {
   jerry_value_t func = (jerry_value_t)((char*)ctx - (char*)NULL);
   jerry_value_t this_value = jerry_create_undefined();
 
-  args[0] = jerry_create_pointer(e, "event_t");
+  args[0] = jerry_create_pointer(e, "event_t", NULL);
   res = jerry_call_function(func, this_value, args, 1);
 
   jerry_release_value(args[0]);
@@ -131,8 +132,26 @@ jerry_value_t wrap_widget_on(const jerry_value_t func_obj_val, const jerry_value
   return jerry_create_number(ret);
 }
 
+jerry_value_t wrap_emitter_on(const jerry_value_t func_obj_val, const jerry_value_t this_p,
+                              const jerry_value_t args_p[], const jerry_length_t args_cnt) {
+  int32_t ret = 0;
+  return_value_if_fail(args_cnt >= 2, jerry_create_undefined());
+
+  if (args_cnt >= 2) {
+    emitter_t* emitter = (emitter_t*)jerry_get_pointer(args_p[0], "emitter_t*");
+    event_type_t type = (event_type_t)jerry_get_number_value(args_p[1]);
+    jerry_value_t on_event = jerry_acquire_value(args_p[2]);
+
+    void* ctx = (char*)NULL + (int32_t)on_event;
+    ret = (int32_t)emitter_on(emitter, type, call_on_event, ctx);
+    emitter_set_on_destroy(emitter, ret, emitter_item_on_destroy, NULL);
+  }
+
+  return jerry_create_number(ret);
+}
+
 jerry_value_t wrap_locale_info_on(const jerry_value_t func_obj_val, const jerry_value_t this_p,
-                               const jerry_value_t args_p[], const jerry_length_t args_cnt) {
+                                  const jerry_value_t args_p[], const jerry_length_t args_cnt) {
   int32_t ret = 0;
   return_value_if_fail(args_cnt >= 2, jerry_create_undefined());
 
@@ -231,13 +250,13 @@ jerry_value_t wrap_idle_add(const jerry_value_t func_obj_val, const jerry_value_
   return jerry_create_number(ret);
 }
 
-static ret_t call_visit(void* ctx, void* data) {
+static ret_t call_visit(void* ctx, const void* data) {
   jerry_value_t res;
   jerry_value_t args[1];
   jerry_value_t func = (jerry_value_t)((char*)ctx - (char*)NULL);
   jerry_value_t this_value = jerry_create_undefined();
 
-  args[0] = jerry_create_pointer(data, "widget_t*");
+  args[0] = jerry_create_pointer(data, "widget_t*", NULL);
   res = jerry_call_function(func, this_value, args, 1);
 
   jerry_release_value(args[0]);

@@ -22,18 +22,19 @@
 #include <string.h>
 #include "jerryscript.h"
 #include "jerryscript-port.h"
+#include "jerryscript-core.h"
 #include "jerryscript-ext/handler.h"
 
 #include "awtk.h"
 #include "ext_widgets/ext_widgets.h"
 
-#include "base/fs.h"
-#include "base/mem.h"
+#include "tkc/fs.h"
+#include "tkc/mem.h"
 #include "demos/assets.h"
 
 extern ret_t awtk_js_init(void);
 
-#define JERRY_BUFFER_SIZE (1048576)
+#define JERRY_BUFFER_SIZE (40 * 1024)
 #define SYNTAX_ERROR_CONTEXT_SIZE 2
 #define JERRY_SNAPSHOT_BUFFER_SIZE (JERRY_BUFFER_SIZE / sizeof(uint32_t))
 
@@ -206,6 +207,16 @@ static jerry_value_t parse_file(const char* filename) {
   return parsed_code;
 }
 
+jerry_value_t jerryx_handler_gc(const jerry_value_t func_obj_val, /**< function object */
+                                const jerry_value_t this_p,       /**< this arg */
+                                const jerry_value_t args_p[],     /**< function arguments */
+                                const jerry_length_t args_cnt) /**< number of function arguments */
+{
+  jerry_gc(JERRY_GC_SEVERITY_HIGH);
+
+  return jerry_create_null();
+}
+
 int main(int argc, char* argv[]) {
   const char* script_file = argc == 2 ? argv[1] : "./demos/demoui.js";
 
@@ -213,6 +224,7 @@ int main(int argc, char* argv[]) {
   assets_init();
 
   jerry_init(JERRY_INIT_EMPTY);
+  jerryx_handler_register_global((const jerry_char_t*)"gc", jerryx_handler_gc);
   jerryx_handler_register_global((const jerry_char_t*)"print", jerryx_handler_print);
 
   awtk_js_init();

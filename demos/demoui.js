@@ -31,6 +31,10 @@ function installOne(w) {
       Dialog.cast(iter.getWindow()).quit(0);
     })
     print('quit dialog.' + widgetName);
+  } else if(strContains(widgetName, 'exit')) {
+    iter.on(EventType.CLICK, function(evt) {
+      Tk.quit();
+    })
   } else if(strContains(widgetName, 'chinese')) {
     iter.on(EventType.CLICK, function(evt) {
       Tklocale.instance().change('zh', 'CN');
@@ -97,7 +101,8 @@ function showPreloadResWindow() {
     if(finish == total) {
       print('done')
       openWindow('main', win);
-      bitmap.destroy();
+      bitmap = null;
+      gc();
 
       return Ret.REMOVE;
     } else {
@@ -105,7 +110,7 @@ function showPreloadResWindow() {
       var name = sPreloadRes[finish].name;
 
       if(type == AssetType.IMAGE) {
-        ImageManager.instance().load(name, bitmap);
+        ImageManager.instance().getBitmap(name, bitmap);
       }
 
       finish = finish + 1;
