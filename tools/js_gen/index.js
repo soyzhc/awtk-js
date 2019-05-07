@@ -62,7 +62,9 @@ class JerryscriptGenerator {
       return r.toUpperCase();
     });
 
-    return name;
+    let newName = 'T' + name;
+    //console.log(`:%s/\\<${name}\\>/${newName}/g`); 
+    return newName;
   }
 
   getClassInfo(name) {
@@ -379,7 +381,16 @@ class JerryscriptGenerator {
   }
 
   genJsonAll(ojson) {
-    let result = '';
+    let result = `
+declare function print(str);
+if(this['console'] === undefined) {
+  this.console = {}
+  this.console.log = function(str) {
+      print(str);
+  }
+}
+`;
+
     let json = this.filterScriptableJson(ojson);
     this.json = json;
 

@@ -1,23 +1,23 @@
 
 function application_init() {
-  var v = Value.create()
+  var v = TValue.create()
   var a = 100;
 
   v.setInt8(100);
-  print(v.int())
+  console.log(v.int())
 
   v.setStr("hello");
-  print(v.str());
+  console.log(v.str());
 
   v.setBool(true)
   v.setBool()
-  print(v.bool());
+  console.log(v.bool());
 
-  print(v.type);
-  print(ValueType)
-  print(ValueType.INVALID);
-  print(ValueType.BOOL);
-  print(ValueType.FLOAT);
+  console.log(v.type);
+  console.log(TValueType)
+  console.log(TValueType.INVALID);
+  console.log(TValueType.BOOL);
+  console.log(TValueType.FLOAT);
 
   v = null
 

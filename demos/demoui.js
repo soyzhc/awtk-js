@@ -1,10 +1,10 @@
 
 var sPreloadRes = [
-  {type : AssetType.IMAGE, name : "bg800x480"},
-  {type : AssetType.IMAGE, name : "earth"},
-  {type : AssetType.IMAGE, name : "dialogTitle"},
-  {type : AssetType.IMAGE, name : "rgb"},
-  {type : AssetType.IMAGE, name : "rgba"}
+  {type : TAssetType.IMAGE, name : "bg800x480"},
+  {type : TAssetType.IMAGE, name : "earth"},
+  {type : TAssetType.IMAGE, name : "dialogTitle"},
+  {type : TAssetType.IMAGE, name : "rgb"},
+  {type : TAssetType.IMAGE, name : "rgba"}
 ]
 
 function strContains(str, substr) {
@@ -12,51 +12,51 @@ function strContains(str, substr) {
 }
 
 function installOne(w) { 
-  var iter = Widget.cast(w);
+  var iter = TWidget.cast(w);
   var widgetName = iter.name;
 
   if(strContains(widgetName, 'open')) {
     var name = iter.name.substr(5);
-    iter.on(EventType.CLICK, function(evt) {
+    iter.on(TEventType.CLICK, function(evt) {
       openWindow(name, null);
     })
-    print('open window:' + name);
+    console.log('open window:' + name);
   } else if(strContains(widgetName, 'close')) {
-    iter.on(EventType.CLICK, function(evt) {
-      Window.cast(iter.getWindow()).close();
+    iter.on(TEventType.CLICK, function(evt) {
+      TWindow.cast(iter.getWindow()).close();
     })
-    print('close window: ' + widgetName);
+    console.log('close window: ' + widgetName);
   } else if(strContains(widgetName, 'quit')) {
-    iter.on(EventType.CLICK, function(evt) {
-      Dialog.cast(iter.getWindow()).quit(0);
+    iter.on(TEventType.CLICK, function(evt) {
+      TDialog.cast(iter.getWindow()).quit(0);
     })
-    print('quit dialog.' + widgetName);
+    console.log('quit dialog.' + widgetName);
   } else if(strContains(widgetName, 'exit')) {
-    iter.on(EventType.CLICK, function(evt) {
-      Tk.quit();
+    iter.on(TEventType.CLICK, function(evt) {
+      TGlobal.quit();
     })
   } else if(strContains(widgetName, 'key')) {
-    iter.on(EventType.CLICK, function(evt) {
-      InputMethod.instance().commitText(iter.getText());
-      print('commitText');
+    iter.on(TEventType.CLICK, function(evt) {
+      TInputMethod.instance().commitText(iter.getText());
+      console.log('commitText');
     })
   } else if(strContains(widgetName, 'backspace')) {
-    iter.on(EventType.CLICK, function(evt) {
-      InputMethod.instance().dispatchKey(KeyCode.KEY_BACKSPACE);
-      print('dispatchKey');
+    iter.on(TEventType.CLICK, function(evt) {
+      TInputMethod.instance().dispatchKey(TKeyCode.KEY_BACKSPACE);
+      console.log('dispatchKey');
     })
   } else if(strContains(widgetName, 'chinese')) {
-    iter.on(EventType.CLICK, function(evt) {
+    iter.on(TEventType.CLICK, function(evt) {
       Tklocale.instance().change('zh', 'CN');
     })
   } else if(strContains(widgetName, 'english')) {
-    iter.on(EventType.CLICK, function(evt) {
+    iter.on(TEventType.CLICK, function(evt) {
       Tklocale.instance().change('en', 'US');
     })
   } else if(strContains(widgetName, 'show_fps')) {
-    iter.on(EventType.CLICK, function(evt) {
-      var wm = WindowManager.instance();
-      print(wm.showFps)
+    iter.on(TEventType.CLICK, function(evt) {
+      var wm = TWindowManager.instance();
+      console.log(wm.showFps)
       if(wm.showFps) {
         wm.setShowFps(false);
         iter.setText("Show FPS");
@@ -65,63 +65,62 @@ function installOne(w) {
         iter.setText("Hide FPS");
       }
     })
-    print('close window.' + widgetName);
+    console.log('close window.' + widgetName);
   }
 
-  return Ret.OK;
+  return TRet.OK;
 }
 
 function installHandlers(win) {
-  print('installHandlers');
+  console.log('installHandlers');
   win.foreach(installOne);
 }
 
 function openWindow(name, toClose) {
   var win = null;
-  print('open ' + name);
+  console.log('open ' + name);
   if(toClose) {
-    win = Window.openAndClose(name, toClose);
+    win = TWindow.openAndClose(name, toClose);
   } else {
-    win = Window.open(name);
+    win = TWindow.open(name);
   }
 
   installHandlers(win);
 
-  print(win.getType() + '.' + WidgetType.DIALOG);
+  console.log(win.getType() + '.' + TWidgetType.DIALOG);
 
-  if(win.getType() == WidgetType.DIALOG) {
-    print('win.modal');
-    Dialog.cast(win).modal();
+  if(win.getType() == TWidgetType.DIALOG) {
+    console.log('win.modal');
+    TDialog.cast(win).modal();
   }
 }
 
 function showPreloadResWindow() {
-  var win = Window.open('preload');
+  var win = TWindow.open('preload');
   var interval = 500 / sPreloadRes.length; 
   var bar = win.lookup('bar', true);
   var status = win.lookup('status', true);
   var total = sPreloadRes.length;
   var finish = 0;
-  var bitmap = Bitmap.create();
+  var bitmap = TBitmap.create();
 
   status.setText('ready');
   bar.setValue(10);
 
-  Timer.add(function(info) { 
+  TTimer.add(function(info) { 
     if(finish == total) {
-      print('done')
-      Window.open('system_bar');
+      console.log('done')
+      TWindow.open('system_bar');
       openWindow('main', win);
       bitmap = null;
-      gc();
 
-      return Ret.REMOVE;
+      return TRet.REMOVE;
     } else {
       var type = sPreloadRes[finish].type;
       var name = sPreloadRes[finish].name;
 
-      if(type == AssetType.IMAGE) {
-        ImageManager.instance().getBitmap(name, bitmap);
+      if(type == TAssetType.IMAGE) {
+        TImageManager.instance().getBitmap(name, bitmap);
       }
 
       finish = finish + 1;
@@ -131,7 +130,7 @@ function showPreloadResWindow() {
       bar.setValue(value);
       status.setText(text);
 
-      return Ret.REPEAT;
+      return TRet.REPEAT;
     }
   }, interval);
 }
